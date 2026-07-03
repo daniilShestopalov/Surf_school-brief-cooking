@@ -62,6 +62,7 @@
   * `client_id` (UUID, Foreign Key) — ссылка на Client.
   * `slot_id` (UUID, Foreign Key) — ссылка на Slot.
   * `status` (String / Enum) — текущий статус (PENDING_PAYMENT, ACTIVE, CANCELLED_BY_CLIENT, CANCELLED_BY_STUDIO, COMPLETED).
+  * `expires_at` (Timestamp, Nullable) — время истечения брони (для статуса PENDING_PAYMENT) [FR-80](../2-requirements/functional-requirements.md).
   * `needs_rental_equipment` (Boolean) — признак аренды экипировки [FR-65](../2-requirements/functional-requirements.md).
   * `chef_rating` (Integer, Nullable) — оценка, выставленная шефу (от 1 до 5) [FR-100](../2-requirements/functional-requirements.md).
 
@@ -88,8 +89,8 @@
 erDiagram
     CLIENT ||--o{ BOOKING : "совершает"
     SLOT ||--o{ BOOKING : "содержит"
-    CLASS_PROGRAM ||--|{ SLOT : "реализуется в"
-    CHEF ||--|{ SLOT : "ведет"
+    CLASS_PROGRAM ||--o{ SLOT : "реализуется в"
+    CHEF ||--o{ SLOT : "ведет"
 
     CLIENT {
         UUID id PK
@@ -134,6 +135,7 @@ erDiagram
         UUID client_id FK
         UUID slot_id FK
         string status
+        timestamp expires_at
         boolean needs_rental_equipment
         int chef_rating
     }

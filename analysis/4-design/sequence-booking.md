@@ -46,11 +46,18 @@ sequenceDiagram
         API-->>App: HTTP 201 Created (Детали брони, реквизиты, таймер)
         App-->>U: Экран "Успешно", таймер 1 час и реквизиты [FR-80]
         
-    else Бизнес-ошибка (Нехватка мест/инвентаря) [HTTP 409 Conflict]
+    else Бизнес-ошибка (Нехватка мест) [HTTP 409 Conflict - SLOT_FULL]
         Note over API: Конкурентное бронирование другим пользователем (Гонка)
         API->>DB: ROLLBACK TRANSACTION
-        API-->>App: HTTP 409 Conflict (код ошибки: SLOT_FULL / EQUIPMENT_OUT)
-        App-->>U: Модальное окно "Места или инвентарь закончились" [UC-30]
+        API-->>App: HTTP 409 Conflict (код: SLOT_FULL)
+        App-->>U: Модальное окно "Извините, места закончились" [UC-30]
+        
+    else Бизнес-ошибка (Нехватка инвентаря) [HTTP 409 Conflict - EQUIPMENT_OUT]
+        Note over API: Выбранный инвентарь закончился к моменту запроса
+        API->>DB: ROLLBACK TRANSACTION
+        API-->>App: HTTP 409 Conflict (код: EQUIPMENT_OUT)
+        App-->>U: Снекбар "Инвентарь забронирован. Продолжить без аренды?" [UC-30]
+        Note over U,App: Пользователь может снять чекбокс и повторить запрос (Retry)
         
     else Ошибка доступности ресурса [HTTP 410 Gone]
         Note over API: Слот был отменен студией или уже завершен
