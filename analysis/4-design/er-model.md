@@ -16,7 +16,7 @@
   * `phone` (String) — номер телефона для авторизации [FR-10](../2-requirements/functional-requirements.md).
   * `email` (String, Nullable) — email клиента.
   * `name` (String, Nullable) — имя пользователя [FR-15](../2-requirements/functional-requirements.md).
-  * `allergy_profile` (JSON / Array of Strings) — список выбранных аллергенов [FR-25](../2-requirements/functional-requirements.md).
+  * `allergy_profile` (Array of Strings) — список выбранных аллергенов [FR-25](../2-requirements/functional-requirements.md).
 
 ### 1.2 ClassProgram (Программа класса)
 Шаблон кулинарного мероприятия (тема, меню, сложность).
@@ -58,12 +58,16 @@
 * **Уровень доступа:** **Read / Write** (Приложение создает брони [FR-60](../2-requirements/functional-requirements.md), отменяет их [FR-85](../2-requirements/functional-requirements.md) и выставляет оценки [FR-100](../2-requirements/functional-requirements.md)).
 * **Атрибуты:**
   * `id` (UUID, Primary Key) — уникальный идентификатор брони.
+  * `idempotency_key` (String, Unique) — ключ идемпотентности для защиты от дублей.
+  * `created_at` (Timestamp) — время создания брони.
   * `client_id` (UUID, Foreign Key) — ссылка на Client.
   * `slot_id` (UUID, Foreign Key) — ссылка на Slot.
   * `seats_count` (Integer) — количество забронированных мест.
   * `status` (String / Enum) — текущий статус (PENDING_PAYMENT, ACTIVE, CANCELLED_BY_CLIENT, CANCELLED_BY_STUDIO, COMPLETED).
   * `expires_at` (Timestamp, Nullable) — время истечения брони (для статуса PENDING_PAYMENT) [FR-80](../2-requirements/functional-requirements.md).
+  * `fixed_base_price` (Integer) — замороженная базовая стоимость участия.
   * `needs_rental_equipment` (Boolean) — признак аренды экипировки [FR-65](../2-requirements/functional-requirements.md).
+  * `equipment_tariff` (Integer) — замороженная стоимость аренды инвентаря.
   * `chef_rating` (Integer, Nullable) — оценка, выставленная шефу (от 1 до 5) [FR-100](../2-requirements/functional-requirements.md).
 
 ## 2. Связи (Relationships)
@@ -97,7 +101,7 @@ erDiagram
         string phone
         string email
         string name
-        json allergy_profile
+        array allergy_profile
     }
 
     CLASS_PROGRAM {
@@ -131,12 +135,16 @@ erDiagram
 
     BOOKING {
         UUID id PK
+        string idempotency_key
+        timestamp created_at
         UUID client_id FK
         UUID slot_id FK
         int seats_count
         string status
         timestamp expires_at
+        int fixed_base_price
         boolean needs_rental_equipment
+        int equipment_tariff
         int chef_rating
     }
 ```
