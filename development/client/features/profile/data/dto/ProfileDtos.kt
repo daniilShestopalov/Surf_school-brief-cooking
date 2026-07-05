@@ -19,6 +19,9 @@ data class BookingResponse(
     @SerialName("slot_id") val slotId: String,
     @SerialName("status") val status: String,
     @SerialName("seats_count") val seatsCount: Int = 1,
+    @SerialName("created_at") val createdAt: Long,
+    @SerialName("fixed_base_price") val fixedBasePrice: Int,
+    @SerialName("equipment_tariff") val equipmentTariff: Int = 0,
     @SerialName("needs_rental_equipment") val needsRentalEquipment: Boolean = false,
     @SerialName("expires_at") val expiresAt: Long? = null,
     @SerialName("chef_rating") val chefRating: Int? = null

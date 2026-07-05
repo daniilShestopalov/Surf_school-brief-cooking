@@ -4,14 +4,23 @@ components:
       type: object
       required:
         - id
+        - idempotency_key
+        - created_at
         - client_id
         - slot_id
         - status
         - seats_count
+        - fixed_base_price
         - needs_rental_equipment
+        - equipment_tariff
       properties:
         id:
           $ref: '../common/models.yaml#/components/schemas/UUID'
+        idempotency_key:
+          type: string
+          description: Ключ идемпотентности, переданный при создании брони.
+        created_at:
+          $ref: '../common/models.yaml#/components/schemas/Timestamp'
         client_id:
           $ref: '../common/models.yaml#/components/schemas/UUID'
         slot_id:
@@ -26,9 +35,15 @@ components:
         expires_at:
           $ref: '../common/models.yaml#/components/schemas/Timestamp'
           description: Время истечения брони (для PENDING_PAYMENT).
+        fixed_base_price:
+          type: integer
+          description: Замороженная базовая стоимость участия на момент бронирования.
         needs_rental_equipment:
           type: boolean
           description: Признак аренды экипировки.
+        equipment_tariff:
+          type: integer
+          description: Замороженная стоимость аренды инвентаря на момент бронирования.
         chef_rating:
           type: integer
           minimum: 1
@@ -62,3 +77,14 @@ components:
           minimum: 1
           maximum: 5
           description: Оценка шефу.
+
+    CreateBookingResponse:
+      type: object
+      required:
+        - id
+        - expires_at
+      properties:
+        id:
+          $ref: '../common/models.yaml#/components/schemas/UUID'
+        expires_at:
+          $ref: '../common/models.yaml#/components/schemas/Timestamp'

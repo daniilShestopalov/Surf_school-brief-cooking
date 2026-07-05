@@ -40,7 +40,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: './models.yaml#/components/schemas/Booking'
+                $ref: './models.yaml#/components/schemas/CreateBookingResponse'
         '409':
           description: Конфликт при бронировании (места заняты или слот начался/инвентарь закончился).
           content:

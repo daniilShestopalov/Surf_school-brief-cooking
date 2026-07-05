@@ -49,6 +49,9 @@ class ProfileRepository(
             slotId = this.slotId,
             status = parsedStatus,
             seatsCount = this.seatsCount,
+            createdAt = this.createdAt,
+            fixedBasePrice = this.fixedBasePrice,
+            equipmentTariff = this.equipmentTariff,
             needsRentalEquipment = this.needsRentalEquipment,
             expiresAt = this.expiresAt,
             chefRating = this.chefRating

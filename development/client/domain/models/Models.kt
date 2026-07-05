@@ -50,6 +50,9 @@ data class Booking(
     val slotId: UUID,
     val status: BookingStatus,
     val seatsCount: Int = 1,
+    val createdAt: Timestamp,
+    val fixedBasePrice: Int,
+    val equipmentTariff: Int,
     val needsRentalEquipment: Boolean,
     val expiresAt: Timestamp?,
     val chefRating: Int? // Rating from 1 to 5
