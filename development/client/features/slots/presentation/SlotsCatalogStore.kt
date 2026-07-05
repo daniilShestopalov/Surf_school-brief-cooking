@@ -9,16 +9,21 @@ import com.surfschool.core.network.NetworkException
 import com.surfschool.features.slots.domain.SlotsRepository
 import com.surfschool.features.slots.presentation.models.SlotItem
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
+import kotlinx.datetime.plus
+import kotlinx.datetime.DatePeriod
 
 data class SlotsCatalogState(
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val isError: Boolean = false,
     val slots: List<SlotItem> = emptyList(),
-    val selectedDate: LocalDate = LocalDate.now(),
-    val availableDates: List<LocalDate> = generateDates(LocalDate.now(), 7)
+    val selectedDate: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault()),
+    val availableDates: List<LocalDate> = generateDates(Clock.System.todayIn(TimeZone.currentSystemDefault()), 7)
 ) : State {
     val isEmpty: Boolean get() = !isLoading && !isError && slots.isEmpty()
 }
@@ -38,6 +43,10 @@ sealed interface SlotsCatalogEffect : Effect {
 class SlotsCatalogStore(
     private val repository: SlotsRepository
 ) : BaseScreenModel<SlotsCatalogState, SlotsCatalogIntent, SlotsCatalogEffect>(SlotsCatalogState()) {
+
+    init {
+        loadSlots()
+    }
 
     override fun onIntent(intent: SlotsCatalogIntent) {
         when (intent) {
@@ -62,9 +71,8 @@ class SlotsCatalogStore(
             }
             
             try {
-                val formatter = DateTimeFormatter.ISO_LOCAL_DATE
-                val startDate = state.value.selectedDate.format(formatter)
-                val endDate = state.value.selectedDate.plusDays(7).format(formatter)
+                val startDate = state.value.selectedDate.toString()
+                val endDate = state.value.selectedDate.plus(DatePeriod(days = 7)).toString()
                 
                 val domainSlots = repository.listSlots(startDate = startDate, endDate = endDate)
                 
@@ -98,5 +106,5 @@ class SlotsCatalogStore(
 }
 
 fun generateDates(start: LocalDate, days: Int): List<LocalDate> {
-    return (0 until days).map { start.plusDays(it.toLong()) }
+    return (0 until days).map { start.plus(DatePeriod(days = it)) }
 }

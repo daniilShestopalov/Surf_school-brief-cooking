@@ -66,7 +66,7 @@ class SlotDetailsStore(
                 updateState { copy(isLoading = false, details = details) }
             } catch (e: Exception) {
                 updateState { copy(isLoading = false, isError = true) }
-                if (e is io.ktor.client.plugins.ClientRequestException && e.response.status.value == 404) {
+                if (e is io.ktor.client.plugins.ClientRequestException && (e.response.status.value == 404 || e.response.status.value == 410)) {
                     emitEffect(SlotDetailsEffect.ShowError("Слот не найден"))
                     emitEffect(SlotDetailsEffect.NavigateBack)
                 } else {

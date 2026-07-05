@@ -20,7 +20,7 @@ import com.surfschool.features.slots.presentation.SlotsCatalogIntent
 import com.surfschool.features.slots.presentation.SlotsCatalogStore
 import com.surfschool.features.slots.presentation.models.SlotItem
 import kotlinx.coroutines.launch
-import java.time.format.DateTimeFormatter
+import kotlinx.datetime.LocalDate
 
 class SlotsCatalogScreen : Screen {
     @Composable
@@ -32,7 +32,6 @@ class SlotsCatalogScreen : Screen {
         val scope = rememberCoroutineScope()
 
         LaunchedEffect(Unit) {
-            store.onIntent(SlotsCatalogIntent.Init)
             store.effect.collect { effect ->
                 when (effect) {
                     is SlotsCatalogEffect.ShowError -> {
@@ -102,21 +101,22 @@ class SlotsCatalogScreen : Screen {
 
 @Composable
 fun DateFilterRow(
-    availableDates: List<java.time.LocalDate>,
-    selectedDate: java.time.LocalDate,
-    onDateSelected: (java.time.LocalDate) -> Unit
+    availableDates: List<LocalDate>,
+    selectedDate: LocalDate,
+    onDateSelected: (LocalDate) -> Unit
 ) {
-    val formatter = remember { DateTimeFormatter.ofPattern("dd MMM") }
+    val monthNames = remember { listOf("Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек") }
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(availableDates) { date ->
             val isSelected = date == selectedDate
+            val labelText = "${date.dayOfMonth} ${monthNames[date.monthNumber - 1]}"
             FilterChip(
                 selected = isSelected,
                 onClick = { onDateSelected(date) },
-                label = { Text(date.format(formatter)) }
+                label = { Text(labelText) }
             )
         }
     }
