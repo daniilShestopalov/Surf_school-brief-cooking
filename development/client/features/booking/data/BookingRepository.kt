@@ -34,7 +34,16 @@ class BookingRepository(private val api: BookingApi) {
             )
         } catch (e: ClientRequestException) {
             when (e.response.status) {
-                HttpStatusCode.Conflict -> throw ConflictException(e.response.status.description)
+                HttpStatusCode.Conflict -> {
+                    val bodyStr = io.ktor.client.statement.bodyAsText(e.response)
+                    val errorCode = try {
+                        kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+                            .decodeFromString<com.surfschool.features.booking.data.dto.ApiErrorResponse>(bodyStr).code
+                    } catch (ex: Exception) {
+                        e.response.status.description
+                    }
+                    throw ConflictException(errorCode)
+                }
                 HttpStatusCode.Gone -> throw GoneException(e.response.status.description)
                 else -> throw e
             }

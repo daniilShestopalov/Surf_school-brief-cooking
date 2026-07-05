@@ -15,3 +15,8 @@ data class CreateBookingResponse(
     @SerialName("id") val id: String,
     @SerialName("expires_at") val expiresAt: Long
 )
+
+@Serializable
+data class ApiErrorResponse(
+    @SerialName("code") val code: String
+)

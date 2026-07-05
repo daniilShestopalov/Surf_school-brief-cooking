@@ -34,6 +34,7 @@ sealed interface BookingEffect {
     data class ShowErrorSnackbar(val message: String) : BookingEffect
     object ShowSlotFullDialog : BookingEffect
     object AskToProceedWithoutEquipment : BookingEffect
+    object ShowSlotGoneDialog : BookingEffect
 }
 
 class BookingScreenModel(
@@ -91,13 +92,13 @@ class BookingScreenModel(
                 )
                 _effect.emit(BookingEffect.NavigateToPayment(booking.id, booking.expiresAt ?: 0))
             } catch (e: ConflictException) {
-                if (e.message?.contains("equipment", ignoreCase = true) == true) {
+                if (e.message == "EQUIPMENT_OUT") {
                     _effect.emit(BookingEffect.AskToProceedWithoutEquipment)
                 } else {
                     _effect.emit(BookingEffect.ShowSlotFullDialog)
                 }
             } catch (e: GoneException) {
-                _effect.emit(BookingEffect.ShowErrorSnackbar("Слот больше недоступен"))
+                _effect.emit(BookingEffect.ShowSlotGoneDialog)
             } catch (e: NetworkException) {
                 _effect.emit(BookingEffect.ShowErrorSnackbar("Отсутствует подключение к сети"))
             } catch (e: Exception) {

@@ -26,6 +26,7 @@ class BookingConfirmationBottomSheet(private val slot: Slot, private val basePri
         
         var showEquipmentDialog by remember { mutableStateOf(false) }
         var showSlotFullDialog by remember { mutableStateOf(false) }
+        var showSlotGoneDialog by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
             screenModel.onIntent(BookingIntent.Init(slot, basePrice))
@@ -45,6 +46,9 @@ class BookingConfirmationBottomSheet(private val slot: Slot, private val basePri
                     }
                     is BookingEffect.AskToProceedWithoutEquipment -> {
                         showEquipmentDialog = true
+                    }
+                    is BookingEffect.ShowSlotGoneDialog -> {
+                        showSlotGoneDialog = true
                     }
                 }
             }
@@ -132,6 +136,22 @@ class BookingConfirmationBottomSheet(private val slot: Slot, private val basePri
                         navigator.pop()
                     }) {
                         Text("Закрыть")
+                    }
+                }
+            )
+        }
+
+        if (showSlotGoneDialog) {
+            AlertDialog(
+                onDismissRequest = { showSlotGoneDialog = false },
+                title = { Text("Слот недоступен") },
+                text = { Text("Слот устарел или больше недоступен.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showSlotGoneDialog = false
+                        navigator.pop()
+                    }) {
+                        Text("Понятно")
                     }
                 }
             )

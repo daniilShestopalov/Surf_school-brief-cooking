@@ -65,6 +65,28 @@
 Поехали. Выполни шаги и выведи в чат структуру созданного модуля бронирования и краткое описание логики обработки ответов API (201, 409, 410).
 ```
 
+- **Промт 2 (Багфикс)**  
+```text
+Ты — Senior Mobile Developer. Тебе необходимо внести точечные исправления в Фичу 3.3 (Бронирование) по результатам код-ревью. Инфраструктура идемпотентности реализована отлично, но есть пара недочетов в логике обработки ошибок 409 и 410.
+
+Пожалуйста, выполни следующие шаги:
+
+### 1. Исправление парсинга тела 409 ошибки (Критично)
+В файле `development/client/features/booking/data/BookingRepository.kt` при обработке `ClientRequestException` (когда `status == HttpStatusCode.Conflict`) ты прокидываешь в `ConflictException` значение `e.response.status.description`. Это возвращает системную строку "Conflict", а не бизнес-код ошибки от бэкенда.
+- **Что нужно сделать:** Считывай тело ответа (body) бэкенда при перехвате исключения. Тебе нужно десериализовать его (например, в DTO ошибки) или распарсить JSON, чтобы достать бизнес-код (ожидаются коды `SLOT_FULL` или `EQUIPMENT_OUT`). Передай именно этот код в `ConflictException`.
+- Затем обнови `development/client/features/booking/presentation/BookingScreenModel.kt`: вместо проверки `e.message?.contains("equipment")` проверяй точный бизнес-код ошибки, чтобы корректно вызывать нужный Effect (`AskToProceedWithoutEquipment` или `ShowSlotFullDialog`).
+
+### 2. Изменение реакции UI на 410 Gone (Минорно)
+В текущей реализации при ошибке `410 Gone` вызывается `ShowErrorSnackbar`. Согласно спецификациям, конфликты должны явно блокировать UI. 
+- **Что нужно сделать:** В `BookingScreenModel.kt` замени вызов снэкбара на новый Effect (например, `ShowSlotGoneDialog`). 
+- В `BookingConfirmationBottomSheet.kt` добавь обработку этого эффекта: покажи `AlertDialog` с текстом "Слот устарел или больше недоступен" и кнопкой "Понятно", по нажатию на которую происходит возврат назад по стеку навигации (`navigator.pop()`).
+
+### 3. Фиксация изменений
+После внесения правок обнови раздел "Реализация и Изменения" в логе `development/tasks-log/TASK-003_booking_feature.md`, добавив пункт о фиксе парсинга тела HTTP-ошибок и обновлении диалога для 410 статуса.
+
+Выведи в чат измененный фрагмент `BookingRepository.kt` с чтением тела ответа и подтверди, что все исправлено.
+```
+
 ## 5. Реализация и Изменения
 
 - **Выполненные действия:** 
@@ -74,6 +96,8 @@
   - Написаны UI компоненты на Compose: BookingConfirmationBottomSheet, PaymentDetailsScreen (с обратным отсчетом), AllergiesSelectionBottomSheet, CancellationBottomSheet.
   - Реализована обработка MVI Effects через LaunchedEffect (вызов Snackbar, диалогов, навигация).
   - Обновлен план реализации `development/implementation-plan.md`.
+  - **Багфикс (Промт 2):** Реализовано чтение `bodyAsText()` для 409 статуса в `BookingRepository.kt` для парсинга бизнес-кодов `SLOT_FULL` и `EQUIPMENT_OUT` через новую модель `ApiErrorResponse`.
+  - **Багфикс (Промт 2):** Обновлена реакция на 410 Gone: в `BookingScreenModel.kt` добавлен `ShowSlotGoneDialog` Effect, а в UI отображается `AlertDialog`, блокирующий экран и возвращающий назад.
 - **Затронутые файлы:**
   - `development/tasks-log/TASK-003_booking_feature.md`
   - `development/client/features/booking/data/dto/BookingDtos.kt`
