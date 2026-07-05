@@ -12,6 +12,7 @@ import com.surfschool.features.profile.data.dto.UpdateAllergiesRequest
 object MockApiHandler {
     private val seenKeys = mutableSetOf<String>()
     private var mockAllergies = emptyList<String>()
+    private var isBookingCancelled = false
 
     fun createMockEngine(): MockEngine {
         return MockEngine { request ->
@@ -162,7 +163,7 @@ object MockApiHandler {
                                     "id": "$id",
                                     "programId": "p0b8a211-0000-0000-0000-prog10000001",
                                     "chefId": "c0b8a211-0000-0000-0000-chef10000001",
-                                    "datetimeStart": 1716228000000,
+                                    "datetimeStart": ${kotlinx.datetime.LocalDateTime(kotlinx.datetime.Clock.System.todayIn(kotlinx.datetime.TimeZone.currentSystemDefault()), kotlinx.datetime.LocalTime(0, 0)).toInstant(kotlinx.datetime.TimeZone.currentSystemDefault()).toEpochMilliseconds() + 10 * 60 * 60 * 1000L},
                                     "duration": 120,
                                     "maxCapacity": 10,
                                     "availableSeats": ${if (id == "slot-full-id") 0 else 5},
@@ -297,22 +298,40 @@ object MockApiHandler {
 
                 // Active Bookings
                 url.endsWith("/bookings") && method == HttpMethod.Get -> {
+                    if (isBookingCancelled) {
+                        respond(
+                            content = ByteReadChannel("""[]"""),
+                            status = HttpStatusCode.OK,
+                            headers = headersOf(HttpHeaders.ContentType, "application/json")
+                        )
+                    } else {
+                        respond(
+                            content = ByteReadChannel("""
+                                [
+                                    {
+                                        "id": "b0b8a211-0000-0000-0000-book10000001",
+                                        "client_id": "u0b8a211-0000-0000-0000-user10000001",
+                                        "slot_id": "e0b8a211-1234-4321-abcd-slot10000001",
+                                        "status": "ACTIVE",
+                                        "seats_count": 1,
+                                        "created_at": 1716000000000,
+                                        "fixed_base_price": 500000,
+                                        "equipment_tariff": 150000,
+                                        "needs_rental_equipment": true
+                                    }
+                                ]
+                            """.trimIndent()),
+                            status = HttpStatusCode.OK,
+                            headers = headersOf(HttpHeaders.ContentType, "application/json")
+                        )
+                    }
+                }
+                
+                // Delete Booking
+                url.contains("/bookings/") && method == HttpMethod.Delete -> {
+                    isBookingCancelled = true
                     respond(
-                        content = ByteReadChannel("""
-                            [
-                                {
-                                    "id": "b0b8a211-0000-0000-0000-book10000001",
-                                    "client_id": "u0b8a211-0000-0000-0000-user10000001",
-                                    "slot_id": "e0b8a211-1234-4321-abcd-slot10000001",
-                                    "status": "ACTIVE",
-                                    "seats_count": 1,
-                                    "created_at": 1716000000000,
-                                    "fixed_base_price": 500000,
-                                    "equipment_tariff": 150000,
-                                    "needs_rental_equipment": true
-                                }
-                            ]
-                        """.trimIndent()),
+                        content = ByteReadChannel("""{}"""),
                         status = HttpStatusCode.OK,
                         headers = headersOf(HttpHeaders.ContentType, "application/json")
                     )
@@ -339,6 +358,8 @@ object MockApiHandler {
                         headers = headersOf(HttpHeaders.ContentType, "application/json")
                     )
                 }
+
+
 
                 else -> respondBadRequest()
             }

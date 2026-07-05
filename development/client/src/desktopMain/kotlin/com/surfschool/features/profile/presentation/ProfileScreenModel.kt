@@ -48,6 +48,11 @@ class ProfileScreenModel(
     val effect: SharedFlow<ProfileEffect> = _effect.asSharedFlow()
 
     init {
+        screenModelScope.launch {
+            com.surfschool.domain.events.BookingEvents.bookingCancelled.collect {
+                handleIntent(ProfileIntent.RefreshData)
+            }
+        }
         handleIntent(ProfileIntent.LoadData)
     }
 
