@@ -6,9 +6,12 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.delay
 import kotlinx.datetime.todayIn
 import kotlinx.datetime.toInstant
+import kotlinx.serialization.json.Json
+import com.surfschool.features.profile.data.dto.UpdateAllergiesRequest
 
 object MockApiHandler {
     private val seenKeys = mutableSetOf<String>()
+    private var mockAllergies = emptyList<String>()
 
     fun createMockEngine(): MockEngine {
         return MockEngine { request ->
@@ -258,7 +261,7 @@ object MockApiHandler {
                                 "phone": "+79991234567",
                                 "name": "Иван Иванов",
                                 "email": "ivanov@example.com",
-                                "allergyProfile": ["Орехи", "Мед"]
+                                "allergy_profile": [${mockAllergies.joinToString(",") { "\"$it\"" }}]
                             }
                         """.trimIndent()),
                         status = HttpStatusCode.OK,
@@ -275,6 +278,23 @@ object MockApiHandler {
                     )
                 }
 
+                // Profile allergies update
+                url.endsWith("/profile/allergies") && method == HttpMethod.Patch -> {
+                    val bodyBytes = request.body.toByteArray()
+                    val bodyString = bodyBytes.decodeToString()
+                    try {
+                        val req = Json { ignoreUnknownKeys = true }.decodeFromString<UpdateAllergiesRequest>(bodyString)
+                        mockAllergies = req.allergyProfile
+                    } catch (e: Exception) {
+                        // fallback or ignore
+                    }
+                    respond(
+                        content = ByteReadChannel("""{}"""),
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                    )
+                }
+
                 // Active Bookings
                 url.endsWith("/bookings") && method == HttpMethod.Get -> {
                     respond(
@@ -282,14 +302,14 @@ object MockApiHandler {
                             [
                                 {
                                     "id": "b0b8a211-0000-0000-0000-book10000001",
-                                    "clientId": "u0b8a211-0000-0000-0000-user10000001",
-                                    "slotId": "e0b8a211-1234-4321-abcd-slot10000001",
+                                    "client_id": "u0b8a211-0000-0000-0000-user10000001",
+                                    "slot_id": "e0b8a211-1234-4321-abcd-slot10000001",
                                     "status": "ACTIVE",
-                                    "seatsCount": 1,
-                                    "createdAt": 1716000000000,
-                                    "fixedBasePrice": 500000,
-                                    "equipmentTariff": 150000,
-                                    "needsRentalEquipment": true
+                                    "seats_count": 1,
+                                    "created_at": 1716000000000,
+                                    "fixed_base_price": 500000,
+                                    "equipment_tariff": 150000,
+                                    "needs_rental_equipment": true
                                 }
                             ]
                         """.trimIndent()),
