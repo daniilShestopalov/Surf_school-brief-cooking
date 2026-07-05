@@ -61,6 +61,41 @@
 Поехали. Выполни шаги и выведи в чат структуру созданного модуля авторизации и краткое описание логики MVI-состояний для экранов SCR-001/SCR-002.
 ```
 
+- **Промт 2 (Багфикс)**
+```text
+Ты — Senior Mobile Developer (Compose Multiplatform / MVI). Твой код реализации авторизации (SCR-001, SCR-002) прошел QA-аудит, но был ОТКЛОНЕН из-за критического архитектурного бага в UI-слое.
+
+В экранах на Compose полностью отсутствует обработка MVI Effects (Side Effects), из-за чего навигация и показ ошибок при сетевых сбоях не работают (сейчас там оставлена просто заглушка-комментарий).
+
+Твоя задача — провести багфикс и доработать экраны в `development/client/features/auth/`. 
+
+### ШАГ 1: Интеграция Effects в LoginScreen.kt
+Открой файл `development/client/features/auth/ui/LoginScreen.kt` и реализуй полноценную обработку `LoginEffect`:
+1. Получи инстанс навигатора Voyager (через `LocalNavigator.currentOrThrow`).
+2. Добавь `SnackbarHostState` для вывода ошибок и интегрируй его в верстку экрана (через `Scaffold` или поверх экрана).
+3. Используя `LaunchedEffect(screenModel)`, подпишись на `screenModel.effect`.
+4. Обработай приходящие эффекты:
+   - `NavigateToRegistration` -> используй `navigator.push(RegistrationScreen())`
+   - `NavigateToSchedule` -> используй `navigator.replaceAll(...)` (если экрана Schedule еще нет, создай временную заглушку `ScheduleScreen`).
+   - `ShowErrorSnackbar` -> выводи переданное сообщение в Snackbar.
+
+### ШАГ 2: Интеграция Effects в RegistrationScreen.kt
+Открой файл `development/client/features/auth/ui/RegistrationScreen.kt` и сделай аналогичную доработку для `RegistrationEffect`:
+1. Добавь навигатор, снекбар и подписку через `LaunchedEffect`.
+2. Обработай `NavigateToSchedule` и `ShowErrorSnackbar`.
+
+### ШАГ 3: Рефакторинг хардкода
+Открой файл `development/client/features/auth/presentation/LoginScreenModel.kt`. 
+В методе `handleOtpChanged` есть хардкод длины OTP-кода (`if (code.length == 4)`). Вынеси магическое число `4` в константу компаньона (например, `private const val OTP_LENGTH = 4`).
+
+### ШАГ 4: Логирование
+Занеси эти исправления в наш лог: `development/tasks-log/TASK-001_auth_feature.md`. 
+Допиши в раздел 5 ("Реализация и Изменения") новый пункт о том, что был проведен багфикс по результатам QA-ревью (добавлена обработка Effects через LaunchedEffect и SnackbarHostState в UI-слое). В историю промтов (Раздел 4) добавь этот промт как "Промт 2 (Багфикс)".
+
+Приступай к работе! Как закончишь, выведи список обновленных файлов.
+ 
+```
+
 ## 5. Реализация и Изменения
 
 - **Выполненные действия:** 
@@ -70,6 +105,7 @@
   - Реализован UI на Compose (LoginScreen, RegistrationScreen) с обработкой Default, Loading, Error состояний.
   - Настроен DI-модуль `AuthModule.kt`.
   - Обновлен план реализации (`implementation-plan.md`).
+  - Проведен багфикс по результатам QA-ревью: добавлена обработка Effects через LaunchedEffect и SnackbarHostState в UI-слое (LoginScreen, RegistrationScreen), а также создана заглушка ScheduleScreen. В LoginScreenModel вынесен хардкод длины OTP.
 - **Затронутые файлы:**
   - `development/client/features/auth/data/dto/AuthDtos.kt`
   - `development/client/features/auth/data/AuthApi.kt`

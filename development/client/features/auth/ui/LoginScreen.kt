@@ -9,24 +9,40 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import com.surfschool.features.auth.presentation.LoginEffect
 import com.surfschool.features.auth.presentation.LoginIntent
 import com.surfschool.features.auth.presentation.LoginScreenModel
 import com.surfschool.features.auth.presentation.LoginStep
+import com.surfschool.features.schedule.ui.ScheduleScreen
 
 class LoginScreen : Screen {
     @Composable
     override fun Content() {
         val screenModel = getScreenModel<LoginScreenModel>()
         val state by screenModel.state.collectAsState()
-        
-        // Handling effects could be done via LaunchedEffect and a SnackBarHostState
-        // and Navigator for navigation.
+        val navigator = LocalNavigator.currentOrThrow
+        val snackbarHostState = remember { SnackbarHostState() }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+        LaunchedEffect(screenModel) {
+            screenModel.effect.collect { effect ->
+                when (effect) {
+                    is LoginEffect.NavigateToRegistration -> navigator.push(RegistrationScreen())
+                    is LoginEffect.NavigateToSchedule -> navigator.replaceAll(ScheduleScreen())
+                    is LoginEffect.ShowErrorSnackbar -> snackbarHostState.showSnackbar(effect.message)
+                }
+            }
+        }
+
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -90,6 +106,7 @@ class LoginScreen : Screen {
                 ) {
                     Text(if (state.resendTimerSeconds > 0) "Запросить повторно через ${state.resendTimerSeconds}с" else "Запросить повторно")
                 }
+            }
             }
         }
     }

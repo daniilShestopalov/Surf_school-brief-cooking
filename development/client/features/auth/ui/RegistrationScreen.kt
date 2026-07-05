@@ -9,19 +9,38 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+import com.surfschool.features.auth.presentation.RegistrationEffect
 import com.surfschool.features.auth.presentation.RegistrationIntent
 import com.surfschool.features.auth.presentation.RegistrationScreenModel
+import com.surfschool.features.schedule.ui.ScheduleScreen
 
 class RegistrationScreen : Screen {
     @Composable
     override fun Content() {
         val screenModel = getScreenModel<RegistrationScreenModel>()
         val state by screenModel.state.collectAsState()
+        val navigator = LocalNavigator.currentOrThrow
+        val snackbarHostState = remember { SnackbarHostState() }
+
+        LaunchedEffect(screenModel) {
+            screenModel.effect.collect { effect ->
+                when (effect) {
+                    is RegistrationEffect.NavigateToSchedule -> navigator.replaceAll(ScheduleScreen())
+                    is RegistrationEffect.ShowErrorSnackbar -> snackbarHostState.showSnackbar(effect.message)
+                }
+            }
+        }
         
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -49,6 +68,7 @@ class RegistrationScreen : Screen {
                 } else {
                     Text("Продолжить")
                 }
+            }
             }
         }
     }

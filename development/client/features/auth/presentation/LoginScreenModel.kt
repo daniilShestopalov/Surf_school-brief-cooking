@@ -80,7 +80,7 @@ class LoginScreenModel(
 
     private fun handleOtpChanged(code: String) {
         updateState { copy(otpCode = code, otpError = null) }
-        if (code.length == 4) { // Assuming 4 digits OTP
+        if (code.length == OTP_LENGTH) {
             verifyCode(code)
         }
     }
@@ -135,5 +135,9 @@ class LoginScreenModel(
                 updateState { copy(resendTimerSeconds = i - 1) }
             }
         }
+    }
+
+    companion object {
+        private const val OTP_LENGTH = 4
     }
 }
