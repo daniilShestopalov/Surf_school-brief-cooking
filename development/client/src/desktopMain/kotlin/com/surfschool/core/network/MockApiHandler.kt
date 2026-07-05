@@ -231,17 +231,21 @@ object MockApiHandler {
                                 HttpHeaders.RetryAfter to listOf("30") // <-- Требуемый заголовок
                             )
                         )
-                        else -> respond(
-                            content = ByteReadChannel("""
-                                {
-                                    "id": "b0b8a211-0000-0000-0000-book10000001",
-                                    "status": "ACTIVE",
-                                    "paymentUrl": null
-                                }
-                            """.trimIndent()),
-                            status = HttpStatusCode.OK,
-                            headers = headersOf(HttpHeaders.ContentType, "application/json")
-                        )
+                        else -> {
+                            val expiresAt = kotlinx.datetime.Clock.System.now().toEpochMilliseconds() + 60 * 60 * 1000
+                            respond(
+                                content = ByteReadChannel("""
+                                    {
+                                        "id": "b0b8a211-0000-0000-0000-book10000001",
+                                        "status": "ACTIVE",
+                                        "paymentUrl": null,
+                                        "expires_at": $expiresAt
+                                    }
+                                """.trimIndent()),
+                                status = HttpStatusCode.OK,
+                                headers = headersOf(HttpHeaders.ContentType, "application/json")
+                            )
+                        }
                     }
                 }
                 
