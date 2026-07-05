@@ -31,9 +31,8 @@ object MockApiHandler {
                     respond(
                         content = ByteReadChannel("""
                             {
-                                "accessToken": "mock-access-token",
-                                "refreshToken": "mock-refresh-token",
-                                "expiresIn": 3600
+                                "token": "mock-access-token",
+                                "is_new_user": false
                             }
                         """.trimIndent()),
                         status = HttpStatusCode.OK,

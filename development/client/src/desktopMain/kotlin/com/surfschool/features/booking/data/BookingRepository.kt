@@ -5,6 +5,7 @@ import com.surfschool.domain.models.BookingStatus
 import com.surfschool.features.booking.data.dto.CreateBookingRequest
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.HttpStatusCode
+import io.ktor.client.statement.bodyAsText
 
 class ConflictException(message: String) : Exception(message)
 class GoneException(message: String) : Exception(message)
@@ -30,12 +31,15 @@ class BookingRepository(private val api: BookingApi) {
                 seatsCount = seatsCount,
                 needsRentalEquipment = needsRentalEquipment,
                 expiresAt = response.expiresAt,
-                chefRating = null
+                chefRating = null,
+                createdAt = kotlinx.datetime.Clock.System.now().toEpochMilliseconds(),
+                fixedBasePrice = 0,
+                equipmentTariff = 0
             )
         } catch (e: ClientRequestException) {
             when (e.response.status) {
                 HttpStatusCode.Conflict -> {
-                    val bodyStr = io.ktor.client.statement.bodyAsText(e.response)
+                    val bodyStr = e.response.bodyAsText()
                     val errorCode = try {
                         kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
                             .decodeFromString<com.surfschool.features.booking.data.dto.ApiErrorResponse>(bodyStr).code

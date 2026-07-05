@@ -11,7 +11,7 @@ import org.koin.dsl.module
 
 val coreModule: Module = module {
     // Multiplatform Settings
-    single<Settings> { Settings() } // In reality might need platform-specific instantiation
+    single<com.russhwolf.settings.Settings> { com.russhwolf.settings.MapSettings() } // In reality might need platform-specific instantiation
     
     // Secure Storage
     single<SecureStorage> { SecureStorageImpl(get()) }

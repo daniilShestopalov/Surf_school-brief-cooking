@@ -1,6 +1,5 @@
 package com.surfschool.features.profile.data
 
-import com.surfschool.core.network.Exceptions
 import com.surfschool.features.profile.data.dto.BookingResponse
 import com.surfschool.features.profile.data.dto.ProfileResponse
 import com.surfschool.features.profile.data.dto.RateChefRequest

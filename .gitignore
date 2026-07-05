@@ -1,3 +1,5 @@
 analysis/2-requirements/fix_links.py
 analysis/4-design/review-report.md
 .gitignore
+development/client/.gradle/
+development/client/build/

@@ -67,6 +67,7 @@ fun createHttpClient(
         }
         
         install(DefaultRequest) {
+            url("http://localhost/")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
         }
     }

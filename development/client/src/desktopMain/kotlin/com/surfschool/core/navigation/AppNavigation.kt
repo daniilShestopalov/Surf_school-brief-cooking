@@ -10,6 +10,7 @@ import com.surfschool.core.network.GlobalNavigationEvent
 import com.surfschool.core.network.globalNavigationEvents
 import com.surfschool.features.auth.ui.LoginScreen
 
+@OptIn(androidx.compose.material.ExperimentalMaterialApi::class)
 @Composable
 fun AppNavigation(initialScreen: Screen) {
     // BottomSheetNavigator provided by Voyager allows nested BottomSheet navigation natively in compose

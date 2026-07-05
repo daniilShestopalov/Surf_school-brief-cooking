@@ -9,9 +9,11 @@ import androidx.compose.ui.Modifier
  * iOS will actualize with MapKit.
  */
 @Composable
-expect fun MapView(
+fun MapView(
     address: String,
     lat: Double,
     lng: Double,
     modifier: Modifier = Modifier
-)
+) {
+    androidx.compose.material3.Text("Map: $address ($lat, $lng)", modifier = modifier)
+}
