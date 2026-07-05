@@ -21,14 +21,47 @@
 *Сюда логгируются все отправленные агенту запросы в ходе решения задачи.*
 
 - **Промт 1**  
-  и так на экране расписания как видишь отображается тсранное время начло теперь это исправь
+```text
+### БАГ: Некорректный формат времени на экране расписания (SCR-003/SCR-004)
+
+**Описание:** 
+На экране каталога слотов и детальной информации о программе отображается неверное или неформатированное время начала мастер-класса (например, сырой Unix Timestamp, ISO-строка с неверной временной зоной или некорректная маска парсинга). Данные отображаются некорректно для конечного пользователя.
+
+**Задача для агента:**
+1. Локализовать место форматирования даты и времени в модуле `features/slots/` (в UI-компонентах отображения карточки слота или на уровне маппера доменной модели в `ScreenModel`).
+2. Проверить входящий формат времени от API/Моков и настроить корректный парсинг с помощью `kotlinx-datetime` (или используемого в проекте форматтера).
+3. Привести вывод времени к целевому UI-виду согласно ТЗ (например, `ЧЧ:ММ`).
+
+**Ожидаемый результат:** 
+Время начала мастер-класса отображается в понятном человекочитаемом формате локального времени без сырых серверных артефактов.
+```
+
+- **Промт 2 (уточняющий)**
+```text
+### БАГ: Ошибка компиляции сборки Desktop (Unresolved reference: toLocalDateTime)
+
+**Описание:** 
+После правки формата времени задача `:compileKotlinDesktop` падает с ошибкой:
+`SlotsCatalogScreen.kt:143:22 Unresolved reference: toLocalDateTime`. Агент не импортировал расширение или вызвал его у несовместимого типа.
+
+**Задача для агента:**
+1. Открыть файл `development/client/src/desktopMain/kotlin/com/surfschool/features/slots/ui/SlotsCatalogScreen.kt` на строке 143.
+2. Проверить импорты вверху файла. Для работы с `toLocalDateTime` из библиотеки `kotlinx.datetime` необходим импорт:
+   `import kotlinx.datetime.toLocalDateTime` 
+   или явное указание тайм-зоны, например: `.toLocalDateTime(TimeZone.currentSystemDefault())`.
+3. Если тип переменной, у которой вызывается метод — `String` (ISO-строка), то сначала нужно распарсить её в `Instant`:
+   `Instant.parse(timeString).toLocalDateTime(TimeZone.currentSystemDefault())`.
+4. Убедиться, что проект успешно компилируется под Desktop таску.
+
+**Ожидаемый результат:** 
+Код успешно компилируется без ошибок `Unresolved reference`, формат даты работает корректно.
+```
 
 ## 5. Реализация и Изменения
 
 - **Выполненные действия:** 
-  - Проанализирован `SlotsCatalogScreen.kt`, найдено место вывода `datetimeStart`.
-  - Внутрь компонента `SlotCard` добавлено форматирование времени с помощью `kotlinx.datetime`. Timestamp преобразуется в `Instant`, затем в `LocalDateTime` с использованием `TimeZone.currentSystemDefault()`. Из `LocalDateTime` извлекаются часы и минуты и форматируются с ведущими нулями (`HH:mm`).
-  - Добавлены необходимые импорты (`kotlinx.datetime.toLocalDateTime`, `TimeZone`, `Instant`), чтобы избежать ошибки компиляции `Unresolved reference: toLocalDateTime`.
+  - **К Промту 1:** Проанализирован `SlotsCatalogScreen.kt`, найдено место вывода `datetimeStart`. Внутрь компонента `SlotCard` добавлено форматирование времени с помощью `kotlinx.datetime`. Timestamp преобразуется в `Instant`, затем в `LocalDateTime` с использованием `TimeZone.currentSystemDefault()`. Из `LocalDateTime` извлекаются часы и минуты и форматируются с ведущими нулями (`HH:mm`).
+  - **К Промту 2:** Добавлены необходимые импорты (`kotlinx.datetime.toLocalDateTime`, `TimeZone`, `Instant`) в файл `SlotsCatalogScreen.kt`, чтобы устранить ошибку компиляции `Unresolved reference: toLocalDateTime`.
 - **Затронутые файлы:**
   - `development/client/src/desktopMain/kotlin/com/surfschool/features/slots/ui/SlotsCatalogScreen.kt`
 
